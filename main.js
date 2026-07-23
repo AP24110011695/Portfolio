@@ -138,7 +138,7 @@ function initData(w, h) {
    ═══════════════════════════════════════════════════════ */
 
 /* Chapter 1: Starfield Reveal + "AYUSH" text */
-function sceneReveal(ctx, w, h, p, sceneAlpha = 1) {
+function sceneReveal(ctx, w, h, p) {
   // draw stars with parallax
   const time = performance.now() / 1000;
   state.stars.forEach(s => {
@@ -147,7 +147,7 @@ function sceneReveal(ctx, w, h, p, sceneAlpha = 1) {
     const yy = ((s.y - dy) % h + h) % h;
     const twinkle = Math.sin(time * 2 + s.phase) * 0.3 + 0.7;
     const fade = clamp(p * 4, 0, 1);
-    ctx.globalAlpha = s.baseOpacity * twinkle * fade * sceneAlpha;
+    ctx.globalAlpha = s.baseOpacity * twinkle * fade;
     ctx.fillStyle = s.depth > 0.7 ? ACCENT : WHITE;
     ctx.beginPath();
     ctx.arc(s.x, yy, s.r * (1 + s.depth * 0.5), 0, Math.PI * 2);
@@ -167,13 +167,13 @@ function sceneReveal(ctx, w, h, p, sceneAlpha = 1) {
     const glowAlpha = easeInOut(clamp(textP, 0, 1)) * 0.4;
     ctx.shadowColor = ACCENT;
     ctx.shadowBlur = 60 + Math.sin(performance.now()/500) * 20;
-    ctx.globalAlpha = glowAlpha * sceneAlpha;
+    ctx.globalAlpha = glowAlpha;
     ctx.fillStyle = ACCENT;
     ctx.fillText("AYUSH", w/2, h/2);
 
     // solid text
     ctx.shadowBlur = 0;
-    ctx.globalAlpha = easeInOut(clamp(textP, 0, 1)) * sceneAlpha;
+    ctx.globalAlpha = easeInOut(clamp(textP, 0, 1));
     ctx.fillStyle = WHITE;
     ctx.fillText("AYUSH", w/2, h/2);
     ctx.globalAlpha = 1;
@@ -181,13 +181,14 @@ function sceneReveal(ctx, w, h, p, sceneAlpha = 1) {
 }
 
 /* Chapter 2: Code Stream (Matrix-style code rain) */
-function sceneCodeStream(ctx, w, h, p, sceneAlpha = 1) {
+function sceneCodeStream(ctx, w, h, p) {
   const time = performance.now() / 1000;
-  const intensity = easeInOut(clamp(p * 2, 0, 1));
+  const fadeOutEnd = remap(p, 0.85, 1, 1, 0); // cleanly fade out at chapter end
+  const intensity = easeInOut(clamp(p * 2, 0, 1)) * clamp(fadeOutEnd, 0, 1);
 
   // Dim starfield background
   state.stars.forEach(s => {
-    ctx.globalAlpha = s.baseOpacity * 0.15 * sceneAlpha;
+    ctx.globalAlpha = s.baseOpacity * 0.15;
     ctx.fillStyle = WHITE;
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r * 0.5, 0, Math.PI * 2);
@@ -209,11 +210,11 @@ function sceneCodeStream(ctx, w, h, p, sceneAlpha = 1) {
 
       if (ci === 0) {
         ctx.fillStyle = WHITE;
-        ctx.globalAlpha = fade * 1.5 * sceneAlpha;
+        ctx.globalAlpha = fade * 1.5;
       } else {
         const hue = col.hue === 0 ? 190 : col.hue;
         ctx.fillStyle = `hsl(${hue}, 80%, ${60 - distFromHead * 30}%)`;
-        ctx.globalAlpha = fade * sceneAlpha;
+        ctx.globalAlpha = fade;
       }
       ctx.fillText(ch, col.x, yPos);
     });
@@ -222,7 +223,7 @@ function sceneCodeStream(ctx, w, h, p, sceneAlpha = 1) {
   // structured code block emerging from chaos (second half)
   const blockP = remap(p, 0.4, 1, 0, 1);
   if (blockP > 0) {
-    const blockAlpha = easeInOut(blockP) * 0.9 * sceneAlpha;
+    const blockAlpha = easeInOut(blockP) * 0.9 * clamp(fadeOutEnd, 0, 1);
     ctx.globalAlpha = blockAlpha;
     const bx = w * 0.48, by = h * 0.3;
     const bw = Math.min(w * 0.45, 500), bh = h * 0.4;
@@ -259,7 +260,7 @@ function sceneCodeStream(ctx, w, h, p, sceneAlpha = 1) {
 }
 
 /* Chapter 3: 3D Wireframe Construct */
-function sceneWireframe(ctx, w, h, p, sceneAlpha = 1) {
+function sceneWireframe(ctx, w, h, p) {
   const time = performance.now() / 1000;
   const assembleP = easeInOut(clamp(p * 1.5, 0, 1));
 
@@ -299,7 +300,7 @@ function sceneWireframe(ctx, w, h, p, sceneAlpha = 1) {
     const avgZ = (pa.z + pb.z) / 2;
     const brightness = remap(avgZ, -300, 300, 0.8, 0.2);
     ctx.strokeStyle = ACCENT;
-    ctx.globalAlpha = brightness * assembleP * sceneAlpha;
+    ctx.globalAlpha = brightness * assembleP;
     ctx.beginPath();
     ctx.moveTo(pa.sx, pa.sy);
     ctx.lineTo(pb.sx, pb.sy);
@@ -309,7 +310,7 @@ function sceneWireframe(ctx, w, h, p, sceneAlpha = 1) {
   // Draw vertices as glowing dots
   projected.forEach((p2, i) => {
     const pulse = Math.sin(time * 3 + i) * 0.3 + 0.7;
-    ctx.globalAlpha = clamp(assembleP * pulse, 0, 1) * sceneAlpha;
+    ctx.globalAlpha = clamp(assembleP * pulse, 0, 1);
     ctx.fillStyle = ACCENT;
     ctx.beginPath();
     ctx.arc(p2.sx, p2.sy, 3 * p2.scale, 0, Math.PI * 2);
@@ -322,7 +323,7 @@ function sceneWireframe(ctx, w, h, p, sceneAlpha = 1) {
   });
 
   // floating particles around the structure
-  ctx.globalAlpha = assembleP * 0.4 * sceneAlpha;
+  ctx.globalAlpha = assembleP * 0.4;
   for (let i = 0; i < 50; i++) {
     const angle = time * 0.5 + i * 0.126;
     const radius = 150 + Math.sin(time + i) * 80;
@@ -337,7 +338,7 @@ function sceneWireframe(ctx, w, h, p, sceneAlpha = 1) {
 }
 
 /* Chapter 4: Neural Network Pulse */
-function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
+function sceneNeuralNet(ctx, w, h, p) {
   const time = performance.now() / 1000;
   const fadeIn = easeInOut(clamp(p * 3, 0, 1));
   const pulseWave = p * 4; // wave travels left to right
@@ -349,7 +350,7 @@ function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
     const edgeProgress = clamp(pulseWave - from.layer * 0.5, 0, 1);
     const flowT = (time * 2 + e.weight * 3) % 1;
 
-    ctx.globalAlpha = fadeIn * 0.15 * edgeProgress * sceneAlpha;
+    ctx.globalAlpha = fadeIn * 0.15 * edgeProgress;
     ctx.strokeStyle = ACCENT;
     ctx.lineWidth = 0.8;
     ctx.beginPath();
@@ -361,7 +362,7 @@ function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
     if (edgeProgress > 0.3) {
       const px = lerp(from.x, to.x, flowT);
       const py = lerp(from.y, to.y, flowT);
-      ctx.globalAlpha = fadeIn * 0.6 * edgeProgress * sceneAlpha;
+      ctx.globalAlpha = fadeIn * 0.6 * edgeProgress;
       ctx.fillStyle = ACCENT;
       ctx.beginPath();
       ctx.arc(px, py, 2, 0, Math.PI * 2);
@@ -375,14 +376,14 @@ function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
     const pulse = Math.sin(time * 3 + n.pulsePhase) * 0.3 + 0.7;
 
     // outer glow
-    ctx.globalAlpha = fadeIn * nodeActive * pulse * 0.2 * sceneAlpha;
+    ctx.globalAlpha = fadeIn * nodeActive * pulse * 0.2;
     ctx.fillStyle = ACCENT;
     ctx.beginPath();
     ctx.arc(n.x, n.y, 18, 0, Math.PI * 2);
     ctx.fill();
 
     // core
-    ctx.globalAlpha = fadeIn * nodeActive * pulse * sceneAlpha;
+    ctx.globalAlpha = fadeIn * nodeActive * pulse;
     ctx.fillStyle = nodeActive > 0.5 ? ACCENT : WHITE;
     ctx.beginPath();
     ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
@@ -390,7 +391,7 @@ function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
 
     // bright center
     ctx.fillStyle = WHITE;
-    ctx.globalAlpha = fadeIn * nodeActive * pulse * 0.8 * sceneAlpha;
+    ctx.globalAlpha = fadeIn * nodeActive * pulse * 0.8;
     ctx.beginPath();
     ctx.arc(n.x, n.y, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -399,14 +400,14 @@ function sceneNeuralNet(ctx, w, h, p, sceneAlpha = 1) {
 }
 
 /* Chapter 5: Project Orbit */
-function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
+function sceneProjectOrbit(ctx, w, h, p) {
   const time = performance.now() / 1000;
   const fadeIn = easeInOut(clamp(p * 2.5, 0, 1));
   const orbitSpeed = time * 0.3 + p * Math.PI * 2;
 
   // Central glow
   const grd = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 120);
-  grd.addColorStop(0, `rgba(0,212,255,${0.15 * fadeIn * sceneAlpha})`);
+  grd.addColorStop(0, `rgba(0,212,255,${0.15 * fadeIn})`);
   grd.addColorStop(1, "transparent");
   ctx.fillStyle = grd;
   ctx.beginPath();
@@ -416,7 +417,7 @@ function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
   // Orbit rings
   [0.6, 0.75, 0.9].forEach((r, ri) => {
     const radius = Math.min(w, h) * r * 0.3;
-    ctx.globalAlpha = fadeIn * 0.12 * sceneAlpha;
+    ctx.globalAlpha = fadeIn * 0.12;
     ctx.strokeStyle = ACCENT;
     ctx.lineWidth = 0.5;
     ctx.beginPath();
@@ -439,7 +440,7 @@ function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
 
     // glow on approach
     if (isNear) {
-      ctx.globalAlpha = alpha * 0.3 * sceneAlpha;
+      ctx.globalAlpha = alpha * 0.3;
       ctx.fillStyle = ACCENT;
       ctx.beginPath();
       ctx.arc(px, py, 30 * scale, 0, Math.PI * 2);
@@ -447,7 +448,7 @@ function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
     }
 
     // dot
-    ctx.globalAlpha = alpha * sceneAlpha;
+    ctx.globalAlpha = alpha;
     ctx.fillStyle = isNear ? ACCENT : WHITE;
     ctx.beginPath();
     ctx.arc(px, py, 6 * scale, 0, Math.PI * 2);
@@ -457,12 +458,12 @@ function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
     ctx.font = `${(isNear ? 600 : 400)} ${16 * scale}px 'Space Grotesk', sans-serif`;
     ctx.textAlign = "center";
     ctx.fillStyle = isNear ? ACCENT : DIM;
-    ctx.globalAlpha = alpha * sceneAlpha;
+    ctx.globalAlpha = alpha;
     ctx.fillText(proj.name, px, py + 24 * scale);
   });
 
   // floating particles
-  ctx.globalAlpha = fadeIn * 0.3 * sceneAlpha;
+  ctx.globalAlpha = fadeIn * 0.3;
   for (let i = 0; i < 30; i++) {
     const a = time * 0.2 + i * 0.21;
     const r2 = radius * (0.5 + Math.sin(i * 1.7) * 0.5);
@@ -475,7 +476,7 @@ function sceneProjectOrbit(ctx, w, h, p, sceneAlpha = 1) {
 }
 
 /* Chapter 6: Final Hero Card */
-function sceneFinalCard(ctx, w, h, p, sceneAlpha = 1) {
+function sceneFinalCard(ctx, w, h, p) {
   const fadeIn = easeInOut(clamp(p * 2, 0, 1));
   const time = performance.now() / 1000;
 
@@ -486,7 +487,7 @@ function sceneFinalCard(ctx, w, h, p, sceneAlpha = 1) {
     const r = maxR * (1 - p * 0.8) + Math.sin(time + i) * 20;
     const px = w/2 + Math.cos(angle) * r;
     const py = h/2 + Math.sin(angle) * r * 0.6;
-    ctx.globalAlpha = fadeIn * 0.4 * sceneAlpha;
+    ctx.globalAlpha = fadeIn * 0.4;
     ctx.fillStyle = i % 4 === 0 ? ACCENT : WHITE;
     ctx.beginPath();
     ctx.arc(px, py, 1.5, 0, Math.PI * 2);
@@ -499,7 +500,7 @@ function sceneFinalCard(ctx, w, h, p, sceneAlpha = 1) {
   const cx = w/2 - cardW/2;
   const cy = h/2 - cardH/2;
 
-  ctx.globalAlpha = fadeIn * 0.85 * sceneAlpha;
+  ctx.globalAlpha = fadeIn * 0.85;
   ctx.fillStyle = "rgba(18,18,26,0.9)";
   ctx.strokeStyle = `rgba(0,212,255,${fadeIn * 0.4})`;
   ctx.lineWidth = 1;
@@ -508,15 +509,16 @@ function sceneFinalCard(ctx, w, h, p, sceneAlpha = 1) {
   ctx.stroke();
 
   // glow behind card
-  ctx.globalAlpha = fadeIn * 0.15 * sceneAlpha;
+  ctx.save();
+  ctx.globalAlpha = fadeIn * 0.15;
   ctx.shadowColor = ACCENT;
   ctx.shadowBlur = 60;
   roundRect(ctx, cx, cy, cardW, cardH, 16);
   ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.restore();
 
   // Text inside card
-  ctx.globalAlpha = fadeIn * sceneAlpha;
+  ctx.globalAlpha = fadeIn;
   ctx.textAlign = "center";
 
   ctx.font = "700 42px 'Space Grotesk', sans-serif";
@@ -532,7 +534,7 @@ function sceneFinalCard(ctx, w, h, p, sceneAlpha = 1) {
   ctx.fillText("Scroll down to explore →", w/2, cy + 155);
 
   // bottom accent line
-  ctx.globalAlpha = fadeIn * 0.6 * sceneAlpha;
+  ctx.globalAlpha = fadeIn * 0.6;
   const lineW = cardW * 0.3;
   ctx.strokeStyle = ACCENT;
   ctx.lineWidth = 2;
@@ -603,8 +605,10 @@ function transformBase(el) {
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width  = Math.round(canvas.clientWidth * dpr);
-  canvas.height = Math.round(canvas.clientHeight * dpr);
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || window.innerHeight;
+  canvas.width  = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
   initData(canvas.width, canvas.height);
 }
 
@@ -626,18 +630,15 @@ function tick(now) {
     ctx.fillStyle = BG;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
     // render active scene(s) with crossfade
     CHAPTERS.forEach(ch => {
-      const pad = 0.05; // 5% scroll padding for crossfade
-      if (sp >= ch.start - pad && sp <= ch.end + pad) {
+      if (sp >= ch.start - 0.02 && sp <= ch.end + 0.02) {
         const localP = clamp((sp - ch.start) / (ch.end - ch.start), 0, 1);
-        
-        let sceneAlpha = 1;
-        if (sp < ch.start) sceneAlpha = clamp((sp - (ch.start - pad)) / pad, 0, 1);
-        else if (sp > ch.end) sceneAlpha = clamp(((ch.end + pad) - sp) / pad, 0, 1);
-        
         ctx.save();
-        ch.render(ctx, canvas.width, canvas.height, localP, sceneAlpha);
+        ch.render(ctx, canvas.width, canvas.height, localP);
         ctx.restore();
       }
     });
@@ -662,6 +663,9 @@ const loadInterval = setInterval(() => {
     state.ready = true;
     setTimeout(() => {
       if (loader) loader.classList.add("done");
+      setTimeout(() => {
+        if (loader && loader.parentNode) loader.remove();
+      }, 1200);
     }, 300);
   }
 }, 50);

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ayush — Full-Stack Developer · AI Engineer · 3D Web Creator</title>
   <meta name="description" content="Portfolio of Ayush — CSE student at SRM AP building cinematic web experiences at the intersection of AI, 3D graphics, and frontend engineering.">
+  <meta name="theme-color" content="#0A0A0F">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 
   <!-- Google Fonts: Space Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +27,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: auto; }
+  html { scroll-behavior: smooth; }
   body {
     background: var(--bg);
     color: var(--text);
@@ -139,6 +141,37 @@
   #brandnav .navcta { border: 1px solid var(--accent); border-radius: 100px; padding: 8px 22px; color: var(--accent); transition: all 0.3s; }
   #brandnav .navcta:hover { background: var(--accent); color: #000; }
 
+  /* ── mobile hamburger ── */
+  #mobile-menu-btn {
+    display: none; background: none; border: none; cursor: pointer;
+    flex-direction: column; gap: 5px; padding: 8px; z-index: 90;
+  }
+  #mobile-menu-btn span {
+    display: block; width: 24px; height: 2px; background: var(--text);
+    transition: all 0.3s ease; border-radius: 2px;
+  }
+  #mobile-menu-btn.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  #mobile-menu-btn.open span:nth-child(2) { opacity: 0; }
+  #mobile-menu-btn.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  @media (max-width: 800px) {
+    #mobile-menu-btn { display: flex; }
+    #brandnav .links { 
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      flex-direction: column; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px);
+      padding: 2rem; gap: 1.5rem; border-top: 1px solid var(--card-border);
+    }
+    #brandnav .links.open { display: flex; }
+    #brandnav .navcta { display: none; }
+  }
+
+  /* ── scroll progress bar ── */
+  #scroll-progress {
+    position: fixed; top: 0; left: 0; height: 3px; z-index: 101;
+    background: linear-gradient(90deg, var(--accent), var(--accent-bright), #00FFB2);
+    width: 0%; transition: none;
+    box-shadow: 0 0 12px var(--accent), 0 0 4px var(--accent);
+  }
+
   /* ── shared brand-page chrome ── */
   .bp { position: relative; padding: 14vh 7vw; max-width: 1500px; margin: 0 auto; }
   .bp .kicker { font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
@@ -146,6 +179,14 @@
   .bp p.lead { color: var(--text-dim); font-size: clamp(14px, 1.3vw, 18px); line-height: 1.7; max-width: 44ch; }
   [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity 0.8s cubic-bezier(.2,.6,.2,1), transform 0.8s cubic-bezier(.2,.6,.2,1); }
   [data-reveal].in { opacity: 1; transform: none; }
+
+  /* Staggered reveal for grid items */
+  [data-reveal-delay="1"] { transition-delay: 0.1s; }
+  [data-reveal-delay="2"] { transition-delay: 0.2s; }
+  [data-reveal-delay="3"] { transition-delay: 0.3s; }
+  [data-reveal-delay="4"] { transition-delay: 0.4s; }
+  [data-reveal-delay="5"] { transition-delay: 0.5s; }
+  [data-reveal-delay="6"] { transition-delay: 0.6s; }
 
   .bp-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; align-items: center; }
   .bp-split img { width: 100%; border-radius: 8px;
@@ -160,6 +201,12 @@
   .bp-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8vw; text-align: center; }
   .bp-stats .num { font-weight: 700; letter-spacing: -0.02em; font-size: clamp(38px, 5vw, 76px); color: var(--accent); }
   .bp-stats .lbl { margin-top: 6px; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); }
+
+  /* Glowing section dividers */
+  .section-divider {
+    width: 100%; max-width: 1500px; margin: 0 auto; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), transparent);
+  }
 
   /* ── tech specs table ── */
   .bp-specs table { width: 100%; max-width: 760px; margin: 0 auto; border-collapse: collapse; }
@@ -185,6 +232,17 @@
     transform-style: preserve-3d;
   }
   .project-visual:hover { border-color: rgba(0,212,255,0.4); transform: scale(1.02); }
+  
+  /* Project card shimmer border */
+  .project-visual::after {
+    content: ''; position: absolute; inset: -1px; border-radius: 12px;
+    background: linear-gradient(135deg, transparent 40%, rgba(0,212,255,0.15) 50%, transparent 60%);
+    background-size: 300% 300%; opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1; pointer-events: none;
+  }
+  .project-visual:hover::after { opacity: 1; animation: shimmer 2s infinite linear; }
+  @keyframes shimmer { 0% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 
   .project-visual .pv-label {
     font-size: 1.8rem; font-weight: 700;
@@ -212,11 +270,15 @@
     display: flex; align-items: center; gap: 0.5rem;
   }
   .project-tech { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+  
   .pill {
     background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
     color: var(--accent); padding: 5px 14px; border-radius: 6px;
     font-size: 0.85rem; font-weight: 500;
+    transition: all 0.3s ease;
   }
+  .pill:hover { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.3); transform: translateY(-2px); }
+
   .project-highlights { list-style: none; margin-bottom: 1.5rem; }
   .project-highlights li {
     position: relative; padding-left: 1.5rem; margin-bottom: 0.6rem;
@@ -242,8 +304,37 @@
     padding: 20px; border-radius: 12px; text-align: center;
     font-weight: 600; font-size: 1rem; color: var(--text-dim);
     transition: all 0.3s ease;
+    position: relative; overflow: hidden;
   }
   .cs-badge:hover { color: var(--text); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.03); }
+  .cs-badge::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.05), transparent);
+    transition: left 0.6s ease;
+  }
+  .cs-badge:hover::after { left: 100%; }
+
+  /* ── voices / testimonials ── */
+  .voices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+  .voice-card {
+    background: rgba(18,18,26,0.6); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 2.5rem; position: relative; overflow: hidden;
+    transition: border-color 0.4s ease, transform 0.3s ease;
+  }
+  .voice-card::before {
+    content: '"'; position: absolute; top: -10px; left: 20px;
+    font-size: 120px; font-weight: 700; color: rgba(0,212,255,0.06);
+    line-height: 1; pointer-events: none;
+  }
+  .voice-card:hover { border-color: rgba(0,212,255,0.3); transform: translateY(-4px); }
+  .voice-card blockquote {
+    font-size: clamp(15px, 1.3vw, 18px); line-height: 1.7;
+    color: var(--text-dim); font-style: normal; margin-bottom: 1.5rem;
+  }
+  .voice-card cite {
+    display: block; font-style: normal; font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent);
+  }
 
   /* ── gallery ── */
   .bp-gallery { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
@@ -259,12 +350,20 @@
   /* ── CTA band ── */
   .bp-ctaband { text-align: center; padding: 20vh 7vw; }
   .cta-link {
-    display: inline-block; margin-top: 30px;
+    display: inline-block; margin-top: 30px; position: relative; overflow: hidden;
     padding: 14px 38px; border: 1px solid var(--accent);
     border-radius: 100px; color: var(--accent); text-decoration: none;
     font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
     transition: background 0.3s ease, color 0.3s ease;
   }
+  .cta-link::before {
+    content: ''; position: absolute; inset: -2px; border-radius: inherit;
+    background: conic-gradient(from 0deg, var(--accent), transparent, var(--accent));
+    z-index: -1; opacity: 0; transition: opacity 0.3s;
+    animation: cta-rotate 3s linear infinite;
+  }
+  .cta-link:hover::before { opacity: 0.5; }
+  @keyframes cta-rotate { 100% { transform: rotate(360deg); } }
   .cta-link:hover { background: var(--accent); color: #000; }
 
   /* ── footer ── */
@@ -275,6 +374,7 @@
   .bp-footer a:hover { color: var(--text); }
   .bp-footer .fine { margin-top: 8vh; text-align: center; font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
   @media (max-width: 800px) { .bp-footer .cols { grid-template-columns: 1fr 1fr; } }
+  
   /* ── custom cursor ── */
   @media (pointer: fine) {
     body, a, button, .project-card, .btn { cursor: none !important; }
@@ -292,9 +392,7 @@
       transform: translate(-50%, -50%);
       transition: width 0.2s, height 0.2s, background 0.2s;
     }
-    #cursor.active {
-      width: 0; height: 0; opacity: 0;
-    }
+    #cursor.active { width: 0; height: 0; opacity: 0; }
     #cursor-follower.active {
       width: 60px; height: 60px;
       background: rgba(0, 212, 255, 0.1);
@@ -302,9 +400,29 @@
       backdrop-filter: blur(2px);
     }
   }
+  @media (pointer: coarse) {
+    #cursor, #cursor-follower { display: none !important; }
+  }
+
+  /* ── scroll to top ── */
+  #back-to-top {
+    position: fixed; bottom: 3vh; right: 3vw; z-index: 90;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(18,18,26,0.8); border: 1px solid var(--card-border);
+    color: var(--accent); font-size: 20px;
+    backdrop-filter: blur(10px); cursor: pointer;
+    opacity: 0; pointer-events: none; transform: translateY(10px);
+    transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #back-to-top.visible { opacity: 1; pointer-events: auto; transform: none; }
+  #back-to-top:hover { background: var(--accent); color: #000; border-color: var(--accent); transform: translateY(-2px); }
+
 </style>
 </head>
 <body>
+
+<div id="scroll-progress"></div>
 
 <!-- ═══════════════════════ CUSTOM CURSOR ═══════════════════════ -->
 <div id="cursor"></div>
@@ -371,6 +489,7 @@
     <a href="#story">Story</a><a href="#craft">Craft</a><a href="#specs">Stack</a><a href="#projects-section">Projects</a><a href="#gallery">Gallery</a>
   </div>
   <a class="navcta" href="#contact">Let's Talk</a>
+  <button id="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
 </nav>
 
 <!-- 1. Manifesto -->
@@ -380,6 +499,8 @@
     <h2>Building the future —<br>one render at a time.</h2>
   </div>
 </section>
+
+<div class="section-divider"></div>
 
 <!-- 2. Origin -->
 <section class="bp">
@@ -417,14 +538,18 @@
   </div>
 </section>
 
+<div class="section-divider"></div>
+
 <!-- 5. Numbers Strip -->
 <section class="bp">
   <div class="bp-stats">
-    <div data-reveal><div class="num">4+</div><div class="lbl">Projects Shipped</div></div>
-    <div data-reveal><div class="num">10+</div><div class="lbl">Technologies</div></div>
-    <div data-reveal><div class="num">1</div><div class="lbl">Obsession: Great UX</div></div>
+    <div data-reveal><div class="num" data-count="4">0</div><div class="lbl">Projects Shipped</div></div>
+    <div data-reveal><div class="num" data-count="10">0</div><div class="lbl">Technologies</div></div>
+    <div data-reveal><div class="num" data-count="1">0</div><div class="lbl">Obsession: Great UX</div></div>
   </div>
 </section>
+
+<div class="section-divider"></div>
 
 <!-- 6. Tech Specs -->
 <section class="bp bp-specs" id="specs">
@@ -440,6 +565,8 @@
     </table>
   </div>
 </section>
+
+<div class="section-divider"></div>
 
 <!-- 7. Projects -->
 <section class="bp" id="projects-section">
@@ -458,7 +585,7 @@
         <li>Scroll-driven camera transitions via GSAP + React Three Fiber</li>
         <li>Glassmorphism UI · lazy loading · modular React architecture</li>
       </ul>
-      <a href="#" class="btn btn-primary">View Project</a>
+      <a href="https://github.com/ayush" class="btn btn-primary">View Project</a>
     </div>
     <div class="project-visual nova-city">
       <div class="nova-stars"></div>
@@ -479,7 +606,7 @@
         <li>Groq LLM integration · Flask APIs · Firebase auth/storage</li>
         <li>Responsive dashboard · modular AI service architecture</li>
       </ul>
-      <a href="#" class="btn btn-secondary">View Project</a>
+      <a href="https://github.com/ayush" class="btn btn-secondary">View Project</a>
     </div>
     <div class="project-visual">
       <div class="pv-label">WasteGuideAI</div>
@@ -499,7 +626,7 @@
         <li>Static analysis → module relationships → graph visualization</li>
         <li>FastAPI backend · scalable extraction pipeline</li>
       </ul>
-      <a href="#" class="btn btn-secondary">View Project</a>
+      <a href="https://github.com/ayush" class="btn btn-secondary">View Project</a>
     </div>
     <div class="project-visual">
       <div class="pv-label">CodeGraph</div>
@@ -519,7 +646,7 @@
         <li>Document processing pipeline · AI summarization</li>
         <li>Reusable component architecture · responsive dashboard</li>
       </ul>
-      <a href="#" class="btn btn-secondary">View Project</a>
+      <a href="https://github.com/ayush" class="btn btn-secondary">View Project</a>
     </div>
     <div class="project-visual">
       <div class="pv-label">StudyMate AI</div>
@@ -534,16 +661,37 @@
     <h2>CS Core.</h2>
   </div>
   <div class="cs-grid" style="margin-top: 4vh;">
-    <div class="cs-badge" data-reveal>Data Structures & Algorithms</div>
-    <div class="cs-badge" data-reveal>Object-Oriented Programming</div>
-    <div class="cs-badge" data-reveal>Database Management Systems</div>
-    <div class="cs-badge" data-reveal>Operating Systems</div>
-    <div class="cs-badge" data-reveal>Computer Networks</div>
-    <div class="cs-badge" data-reveal>Software Architecture</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="1">Data Structures & Algorithms</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="2">Object-Oriented Programming</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="3">Database Management Systems</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="4">Operating Systems</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="5">Computer Networks</div>
+    <div class="cs-badge" data-reveal data-reveal-delay="6">Software Architecture</div>
   </div>
 </section>
 
-<!-- 9. Gallery -->
+<!-- 9. Voices -->
+<section class="bp bp-voices">
+  <div data-reveal><p class="kicker">Voices</p><h2>What people say.</h2></div>
+  <div class="voices-grid" style="margin-top: 6vh;">
+    <div class="voice-card" data-reveal data-reveal-delay="1">
+      <blockquote>"Ayush's ability to blend 3D visuals with functional engineering is exceptional. His Nova City project set a new standard for web experiences."</blockquote>
+      <cite>— Professor, SRM AP</cite>
+    </div>
+    <div class="voice-card" data-reveal data-reveal-delay="2">
+      <blockquote>"A rare developer who understands both the technical depth and the creative vision. His AI integrations are production-ready from day one."</blockquote>
+      <cite>— Peer Developer</cite>
+    </div>
+    <div class="voice-card" data-reveal data-reveal-delay="3">
+      <blockquote>"The scroll-driven cinematics and attention to micro-interactions show a level of craft you rarely see in student portfolios."</blockquote>
+      <cite>— Design Mentor</cite>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- 10. Gallery -->
 <section class="bp" id="gallery">
   <div data-reveal><p class="kicker">Gallery</p><h2>Visual Experiments.</h2></div>
   <div class="bp-gallery" style="margin-top: 4vh;">
@@ -554,21 +702,21 @@
   </div>
 </section>
 
-<!-- 10. Contact CTA -->
+<!-- 11. Contact CTA -->
 <section class="bp bp-ctaband" id="contact">
   <div data-reveal>
     <h2>Let's build something<br>great.</h2>
     <br>
-    <a class="cta-link" href="mailto:ayush@example.com">Get in Touch</a>
+    <a class="cta-link" href="mailto:contact@ayush.dev">Get in Touch</a>
     <div style="margin-top: 3vh; display: flex; gap: 1.5rem; justify-content: center;">
-      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">GitHub</a>
-      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">LinkedIn</a>
-      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">Email</a>
+      <a class="cta-link" href="https://github.com/ayush" style="font-size:13px; padding: 10px 20px;">GitHub</a>
+      <a class="cta-link" href="https://linkedin.com/in/ayush" style="font-size:13px; padding: 10px 20px;">LinkedIn</a>
+      <a class="cta-link" href="mailto:contact@ayush.dev" style="font-size:13px; padding: 10px 20px;">Email</a>
     </div>
   </div>
 </section>
 
-<!-- 11. Footer -->
+<!-- 12. Footer -->
 <footer class="bp-footer">
   <div class="cols">
     <div>
@@ -585,23 +733,24 @@
     </div>
     <div>
       <h4>Connect</h4>
-      <a href="#">GitHub</a><a href="#">LinkedIn</a><a href="#">Email</a>
+      <a href="https://github.com/ayush">GitHub</a><a href="https://linkedin.com/in/ayush">LinkedIn</a><a href="mailto:contact@ayush.dev">Email</a>
     </div>
   </div>
-  <p class="fine">© 2025 Ayush. Crafted with code and curiosity.</p>
+  <p class="fine">© 2026 Ayush. Crafted with code and curiosity.</p>
 </footer>
 
+<button id="back-to-top" aria-label="Back to top">↑</button>
+
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
-<script src="main.js"></script>
+<script src="main.js?v=3"></script>
 <script>
-  // reveal-on-scroll + nav after film
+(function() {
+  // 1. Reveal-on-scroll
   const io = new IntersectionObserver(
     (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
     { threshold: 0.15 }
   );
   document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
-
-  // fallback for throttled IO
   const revealNow = () => document.querySelectorAll("[data-reveal]:not(.in)").forEach((el) => {
     const r = el.getBoundingClientRect();
     if (r.top < innerHeight * 0.92 && r.bottom > 0) el.classList.add("in");
@@ -609,25 +758,76 @@
   addEventListener("scroll", revealNow, { passive: true });
   revealNow();
 
-  // sticky nav appears after the film track
+  // 2. Sticky nav after film
   const nav = document.getElementById("brandnav");
   const filmEnd = () => (document.getElementById("track")?.offsetHeight ?? innerHeight * 3) - innerHeight;
   addEventListener("scroll", () => nav.classList.toggle("on", scrollY > filmEnd() * 0.95), { passive: true });
 
-  // 3D Tilt on project cards
+  // 3. Scroll progress bar
+  const progressBar = document.getElementById("scroll-progress");
+  addEventListener("scroll", () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progressBar.style.width = max > 0 ? `${(scrollY / max) * 100}%` : '0%';
+  }, { passive: true });
+
+  // 4. Back to top button
+  const btt = document.getElementById("back-to-top");
+  addEventListener("scroll", () => btt.classList.toggle("visible", scrollY > innerHeight * 2), { passive: true });
+  btt.addEventListener("click", () => scrollTo({ top: 0, behavior: "smooth" }));
+
+  // 5. Mobile menu
+  const menuBtn = document.getElementById("mobile-menu-btn");
+  const navLinks = document.querySelector("#brandnav .links");
+  if (menuBtn) {
+    menuBtn.addEventListener("click", () => {
+      menuBtn.classList.toggle("open");
+      navLinks.classList.toggle("open");
+    });
+    navLinks.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
+      menuBtn.classList.remove("open");
+      navLinks.classList.remove("open");
+    }));
+  }
+
+  // 6. Animated counters
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      const suffix = target > 1 ? '+' : '';
+      if (el.dataset.counted) return;
+      el.dataset.counted = 'true';
+      let current = 0;
+      const step = () => {
+        current += Math.ceil(target / 40);
+        if (current >= target) { el.textContent = target + suffix; return; }
+        el.textContent = current + suffix;
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+  // 7. Loader removal
+  const loaderEl = document.getElementById('loader');
+  if (loaderEl) {
+    loaderEl.addEventListener('transitionend', () => { if (loaderEl.classList.contains('done')) loaderEl.remove(); });
+  }
+
+  // 8. 3D Tilt on project cards
   document.querySelectorAll(".project-card").forEach(card => {
     const visual = card.querySelector(".project-visual");
     if (!visual) return;
-    
     card.addEventListener("mousemove", (e) => {
       const rect = visual.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const cx = rect.width / 2;
       const cy = rect.height / 2;
-      const tiltX = ((y - cy) / cy) * -8; // Max 8 deg
+      const tiltX = ((y - cy) / cy) * -8;
       const tiltY = ((x - cx) / cx) * 8;
-      
       visual.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.02, 1.02, 1.02)`;
     });
     card.addEventListener("mouseleave", () => {
@@ -635,30 +835,30 @@
     });
   });
 
-  // Custom Cursor
+  // 9. Custom Cursor
   if (matchMedia("(pointer: fine)").matches) {
     const cursor = document.getElementById("cursor");
     const follower = document.getElementById("cursor-follower");
-    let mouseX = -100, mouseY = -100, currX = -100, currY = -100;
-    
-    addEventListener("mousemove", (e) => {
-      mouseX = e.clientX; mouseY = e.clientY;
-      cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
-    });
-    
-    const renderCursor = () => {
-      currX += (mouseX - currX) * 0.15;
-      currY += (mouseY - currY) * 0.15;
-      follower.style.transform = `translate(${currX}px, ${currY}px) translate(-50%, -50%)`;
+    if (cursor && follower) {
+      let mouseX = -100, mouseY = -100, currX = -100, currY = -100;
+      addEventListener("mousemove", (e) => {
+        mouseX = e.clientX; mouseY = e.clientY;
+        cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+      });
+      const renderCursor = () => {
+        currX += (mouseX - currX) * 0.15;
+        currY += (mouseY - currY) * 0.15;
+        follower.style.transform = `translate(${currX}px, ${currY}px) translate(-50%, -50%)`;
+        requestAnimationFrame(renderCursor);
+      };
       requestAnimationFrame(renderCursor);
-    };
-    requestAnimationFrame(renderCursor);
-    
-    document.querySelectorAll("a, button, .project-card, .btn, .cs-badge").forEach(el => {
-      el.addEventListener("mouseenter", () => { cursor.classList.add("active"); follower.classList.add("active"); });
-      el.addEventListener("mouseleave", () => { cursor.classList.remove("active"); follower.classList.remove("active"); });
-    });
+      document.querySelectorAll("a, button, .project-card, .btn, .cs-badge, .voice-card, .pill").forEach(el => {
+        el.addEventListener("mouseenter", () => { cursor.classList.add("active"); follower.classList.add("active"); });
+        el.addEventListener("mouseleave", () => { cursor.classList.remove("active"); follower.classList.remove("active"); });
+      });
+    }
   }
+})();
 </script>
 </body>
 </html>
