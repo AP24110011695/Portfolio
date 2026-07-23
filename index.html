@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ayush — Full-Stack Developer · AI Engineer · 3D Web Creator</title>
+  <meta name="description" content="Portfolio of Ayush — CSE student at SRM AP building cinematic web experiences at the intersection of AI, 3D graphics, and frontend engineering.">
+
+  <!-- Google Fonts: Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --card-bg: #12121A;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --accent: #00D4FF;
+    --accent-bright: #33EEFF;
+    --glow: rgba(0, 212, 255, 0.15);
+    --text: #FFFFFF;
+    --text-dim: rgba(139, 143, 168, 0.75);
+    --font: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── loader ── */
+  #loader {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px;
+    transition: opacity 0.8s ease;
+  }
+  #loader.done { opacity: 0; pointer-events: none; }
+  #loader .mark {
+    font-size: 15px; letter-spacing: 0.5em; text-indent: 0.5em;
+    color: var(--accent); text-transform: uppercase; font-weight: 600;
+  }
+  #loader .bar {
+    width: 180px; height: 2px; background: rgba(0, 212, 255, 0.15);
+    overflow: hidden; position: relative; border-radius: 1px;
+  }
+  #loader .bar i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+    background: var(--accent); display: block;
+    transition: width 0.15s ease;
+  }
+
+  /* ── scroll stage (film) ── */
+  #track { height: 800vh; position: relative; }
+  #stage {
+    position: sticky; top: 0; height: 100vh; width: 100%;
+    overflow: hidden;
+  }
+  #film {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    display: block;
+  }
+  #vignette {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background:
+      radial-gradient(ellipse 62% 68% at 50% 50%, transparent 52%, rgba(10, 10, 15, 0.9) 96%),
+      linear-gradient(to right, rgba(10, 10, 15, 0.9), transparent 18%, transparent 82%, rgba(10, 10, 15, 0.9));
+  }
+
+  /* ── captions ── */
+  .caption {
+    position: absolute; z-index: 10;
+    opacity: 0; pointer-events: none;
+    will-change: opacity, transform;
+  }
+  .caption h1 {
+    font-size: clamp(44px, 7vw, 96px);
+    font-weight: 700; letter-spacing: -0.02em; line-height: 1.02;
+  }
+  .caption h2 {
+    font-size: clamp(30px, 4.2vw, 60px);
+    font-weight: 600; letter-spacing: -0.015em; line-height: 1.05;
+  }
+  .caption p {
+    margin-top: 14px;
+    font-size: clamp(15px, 1.4vw, 20px);
+    color: var(--text-dim); font-weight: 400; letter-spacing: 0.01em;
+    max-width: 34ch;
+  }
+  .caption .accent { color: var(--accent-bright); }
+
+  .cap-center { left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .cap-center p { margin-left: auto; margin-right: auto; }
+  .cap-left   { left: 7vw; top: 50%; transform: translateY(-50%); }
+  .cap-right  { right: 7vw; top: 50%; transform: translateY(-50%); text-align: right; }
+  .cap-right p { margin-left: auto; }
+  .cap-top    { left: 50%; top: 12vh; transform: translateX(-50%); text-align: center; }
+  .cap-bottom { left: 50%; bottom: 10vh; transform: translateX(-50%); text-align: center; }
+
+  #scroll-cue {
+    position: absolute; bottom: 4.5vh; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: var(--text-dim); font-size: 12px; letter-spacing: 0.3em; text-indent: 0.3em;
+    text-transform: uppercase;
+    transition: opacity 0.5s ease;
+  }
+  #scroll-cue::after {
+    content: ""; width: 1px; height: 34px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: cue 1.8s ease-in-out infinite;
+  }
+  @keyframes cue {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(8px); opacity: 0.4; }
+  }
+
+  /* ── sticky nav (appears after the film) ── */
+  #brandnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 80;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 4vw;
+    background: rgba(10, 10, 15, 0.82);
+    backdrop-filter: blur(14px);
+    opacity: 0; pointer-events: none; transform: translateY(-8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  #brandnav.on { opacity: 1; pointer-events: auto; transform: none; }
+  #brandnav .mark { letter-spacing: 0.4em; text-indent: 0.4em; font-size: 13px; color: var(--accent); text-transform: uppercase; font-weight: 600; }
+  #brandnav .links { display: flex; gap: 2.4vw; }
+  #brandnav a { color: var(--text-dim); text-decoration: none; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; transition: color 0.25s; }
+  #brandnav a:hover { color: var(--text); }
+  #brandnav .navcta { border: 1px solid var(--accent); border-radius: 100px; padding: 8px 22px; color: var(--accent); transition: all 0.3s; }
+  #brandnav .navcta:hover { background: var(--accent); color: #000; }
+
+  /* ── shared brand-page chrome ── */
+  .bp { position: relative; padding: 14vh 7vw; max-width: 1500px; margin: 0 auto; }
+  .bp .kicker { font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+  .bp h2 { font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; font-size: clamp(34px, 4.6vw, 68px); }
+  .bp p.lead { color: var(--text-dim); font-size: clamp(14px, 1.3vw, 18px); line-height: 1.7; max-width: 44ch; }
+  [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity 0.8s cubic-bezier(.2,.6,.2,1), transform 0.8s cubic-bezier(.2,.6,.2,1); }
+  [data-reveal].in { opacity: 1; transform: none; }
+
+  .bp-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; align-items: center; }
+  .bp-split img { width: 100%; border-radius: 8px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 60%, transparent 100%);
+    mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 60%, transparent 100%); }
+  .bp-split.flip > :first-child { order: 2; }
+  @media (max-width: 800px) { .bp-split { grid-template-columns: 1fr; } .bp-split.flip > :first-child { order: 0; } }
+
+  .bp-manifesto { text-align: center; padding: 22vh 7vw; }
+  .bp-manifesto h2 { font-size: clamp(40px, 7vw, 110px); max-width: 16ch; margin: 0 auto; }
+
+  .bp-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8vw; text-align: center; }
+  .bp-stats .num { font-weight: 700; letter-spacing: -0.02em; font-size: clamp(38px, 5vw, 76px); color: var(--accent); }
+  .bp-stats .lbl { margin-top: 6px; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); }
+
+  /* ── tech specs table ── */
+  .bp-specs table { width: 100%; max-width: 760px; margin: 0 auto; border-collapse: collapse; }
+  .bp-specs td { padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: clamp(13px, 1.2vw, 16px); }
+  .bp-specs td:first-child { color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; font-size: 12px; }
+  .bp-specs td:last-child { text-align: right; }
+
+  /* ── projects ── */
+  .project-card {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4vw; align-items: center; margin-bottom: 10vh;
+  }
+  .project-card.flip > :first-child { order: 2; }
+  @media (max-width: 800px) { .project-card { grid-template-columns: 1fr; } .project-card.flip > :first-child { order: 0; } }
+
+  .project-visual {
+    height: 350px; border-radius: 12px;
+    background: linear-gradient(145deg, #1A1A24 0%, #0D0D14 100%);
+    border: 1px solid var(--card-border);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .project-visual:hover { border-color: rgba(0,212,255,0.4); transform: scale(1.02); }
+
+  .project-visual .pv-label {
+    font-size: 1.8rem; font-weight: 700;
+    color: rgba(255,255,255,0.06);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    position: relative; z-index: 2;
+  }
+  /* Nova City special bg */
+  .project-visual.nova-city {
+    background: radial-gradient(circle at center, #1A1A3A 0%, #05050A 100%);
+  }
+  .nova-stars {
+    position: absolute; width: 100%; height: 100%;
+    background-image:
+      radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+      radial-gradient(1px 1px at 40px 70px, #fff, transparent),
+      radial-gradient(2px 2px at 90px 40px, #fff, transparent);
+    background-repeat: repeat; background-size: 200px 200px;
+    animation: twinkle 5s infinite linear; opacity: 0.5;
+  }
+  @keyframes twinkle { 0% { transform: translateY(0); } 100% { transform: translateY(-200px); } }
+
+  .project-content h3 {
+    font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .project-tech { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .pill {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
+    color: var(--accent); padding: 5px 14px; border-radius: 6px;
+    font-size: 0.85rem; font-weight: 500;
+  }
+  .project-highlights { list-style: none; margin-bottom: 1.5rem; }
+  .project-highlights li {
+    position: relative; padding-left: 1.5rem; margin-bottom: 0.6rem;
+    color: var(--text-dim); font-size: 0.95rem;
+  }
+  .project-highlights li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px 28px; font-family: var(--font); font-size: 0.95rem;
+    font-weight: 600; text-decoration: none; border-radius: 8px;
+    transition: all 0.3s ease; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--glow); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,212,255,0.4); background: var(--accent-bright); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--card-border); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.05); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+
+  /* ── cs foundation badges ── */
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+  .cs-badge {
+    background: transparent; border: 1px solid var(--card-border);
+    padding: 20px; border-radius: 12px; text-align: center;
+    font-weight: 600; font-size: 1rem; color: var(--text-dim);
+    transition: all 0.3s ease;
+  }
+  .cs-badge:hover { color: var(--text); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.03); }
+
+  /* ── gallery ── */
+  .bp-gallery { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+  .bp-gallery img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 60%, transparent 100%);
+    mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 60%, transparent 100%); }
+  .bp-gallery .g1 { grid-column: span 7; aspect-ratio: 4/3; }
+  .bp-gallery .g2 { grid-column: span 5; aspect-ratio: 4/5; }
+  .bp-gallery .g3 { grid-column: span 5; aspect-ratio: 1/1; }
+  .bp-gallery .g4 { grid-column: span 7; aspect-ratio: 16/10; }
+  @media (max-width: 800px) { .bp-gallery img { grid-column: span 12 !important; } }
+
+  /* ── CTA band ── */
+  .bp-ctaband { text-align: center; padding: 20vh 7vw; }
+  .cta-link {
+    display: inline-block; margin-top: 30px;
+    padding: 14px 38px; border: 1px solid var(--accent);
+    border-radius: 100px; color: var(--accent); text-decoration: none;
+    font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .cta-link:hover { background: var(--accent); color: #000; }
+
+  /* ── footer ── */
+  footer.bp-footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 9vh 7vw 6vh; }
+  .bp-footer .cols { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 5vw; max-width: 1500px; margin: 0 auto; }
+  .bp-footer h4 { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
+  .bp-footer a { display: block; color: var(--text-dim); text-decoration: none; font-size: 14px; margin-bottom: 10px; }
+  .bp-footer a:hover { color: var(--text); }
+  .bp-footer .fine { margin-top: 8vh; text-align: center; font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
+  @media (max-width: 800px) { .bp-footer .cols { grid-template-columns: 1fr 1fr; } }
+  /* ── custom cursor ── */
+  @media (pointer: fine) {
+    body, a, button, .project-card, .btn { cursor: none !important; }
+    #cursor {
+      position: fixed; top: 0; left: 0; width: 12px; height: 12px;
+      background: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+    #cursor-follower {
+      position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+      border: 1px solid rgba(0, 212, 255, 0.5); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+    #cursor.active {
+      width: 0; height: 0; opacity: 0;
+    }
+    #cursor-follower.active {
+      width: 60px; height: 60px;
+      background: rgba(0, 212, 255, 0.1);
+      border-color: var(--accent);
+      backdrop-filter: blur(2px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ CUSTOM CURSOR ═══════════════════════ -->
+<div id="cursor"></div>
+<div id="cursor-follower"></div>
+
+<!-- ═══════════════════════ LOADER ═══════════════════════ -->
+<div id="loader">
+  <div class="mark">Ayush</div>
+  <div class="bar"><i id="loadbar"></i></div>
+</div>
+
+<!-- ═══════════════════════ SCROLL FILM ═══════════════════════ -->
+<div id="track">
+  <div id="stage">
+    <canvas id="film"></canvas>
+    <div id="vignette"></div>
+
+    <!-- Chapter 1: Reveal -->
+    <div class="caption cap-center" data-in="-0.05" data-hold="0.03" data-out="0.08">
+      <h1><span class="accent">AYUSH</span></h1>
+      <p>Building the future — one render at a time.</p>
+    </div>
+
+    <!-- Chapter 2: Code Stream -->
+    <div class="caption cap-left" data-in="0.16" data-hold="0.20" data-out="0.27">
+      <h2>Code is<br><span class="accent">craft.</span></h2>
+      <p>Every function, every component — engineered with intention.</p>
+    </div>
+
+    <!-- Chapter 3: Wireframe -->
+    <div class="caption cap-right" data-in="0.32" data-hold="0.38" data-out="0.46">
+      <h2>Dimension.<br><span class="accent">Constructed.</span></h2>
+      <p>3D worlds assembled from pure geometry and light.</p>
+    </div>
+
+    <!-- Chapter 4: Neural Pulse -->
+    <div class="caption cap-left" data-in="0.52" data-hold="0.56" data-out="0.62">
+      <h2>Intelligence,<br><span class="accent">flowing.</span></h2>
+      <p>Neural pathways light up. AI meets craft.</p>
+    </div>
+
+    <!-- Chapter 5: Project Orbit -->
+    <div class="caption cap-right" data-in="0.67" data-hold="0.72" data-out="0.79">
+      <h2>Every project<br>tells a <span class="accent">story.</span></h2>
+      <p>Four ideas, each one pushed to the edge.</p>
+    </div>
+
+    <!-- Chapter 6: Final Card -->
+    <div class="caption cap-bottom" data-in="0.88" data-hold="0.94" data-out="1.1">
+      <h1>Let's <span class="accent">build.</span></h1>
+      <p>Scroll down to explore the full story.</p>
+    </div>
+
+    <div id="scroll-cue">Scroll</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ BRAND PAGE ═══════════════════════ -->
+
+<!-- Sticky Nav (appears after the film) -->
+<nav id="brandnav">
+  <span class="mark">Ayush</span>
+  <div class="links">
+    <a href="#story">Story</a><a href="#craft">Craft</a><a href="#specs">Stack</a><a href="#projects-section">Projects</a><a href="#gallery">Gallery</a>
+  </div>
+  <a class="navcta" href="#contact">Let's Talk</a>
+</nav>
+
+<!-- 1. Manifesto -->
+<section class="bp bp-manifesto" id="story">
+  <div data-reveal>
+    <p class="kicker">Ayush</p>
+    <h2>Building the future —<br>one render at a time.</h2>
+  </div>
+</section>
+
+<!-- 2. Origin -->
+<section class="bp">
+  <div class="bp-split">
+    <div data-reveal>
+      <p class="kicker">Origin</p>
+      <h2>Where code meets cosmos.</h2>
+      <p class="lead">CSE student at SRM AP building at the intersection of AI, 3D graphics, and frontend engineering. I care about performance, craft, and UX — and I believe the best digital experiences feel alive.</p>
+    </div>
+    <img data-reveal src="img/origin_hero.jpg" alt="Abstract cosmic technology visualization — floating holographic code editors and glowing terminal windows in deep space" />
+  </div>
+</section>
+
+<!-- 3. Craft 01 — Full-Stack Engineering -->
+<section class="bp" id="craft">
+  <div class="bp-split flip">
+    <div data-reveal>
+      <p class="kicker">Craft — 01</p>
+      <h2>Full-Stack Architecture.</h2>
+      <p class="lead">From React frontends to Node.js APIs to MongoDB datastores — every layer engineered for scalability. I build complete systems, not just screens.</p>
+    </div>
+    <img data-reveal src="img/fullstack_craft.jpg" alt="Abstract visualization of full-stack software architecture with layered translucent platforms" />
+  </div>
+</section>
+
+<!-- 4. Craft 02 — AI & 3D Web -->
+<section class="bp">
+  <div class="bp-split">
+    <div data-reveal>
+      <p class="kicker">Craft — 02</p>
+      <h2>AI & 3D Graphics.</h2>
+      <p class="lead">LLM integration, neural network workflows, Three.js scenes, and scroll-driven cinematics. Where intelligence meets dimension.</p>
+    </div>
+    <img data-reveal src="img/ai_neural_craft.jpg" alt="Abstract neural network visualization merging with 3D geometric wireframe icosahedron" />
+  </div>
+</section>
+
+<!-- 5. Numbers Strip -->
+<section class="bp">
+  <div class="bp-stats">
+    <div data-reveal><div class="num">4+</div><div class="lbl">Projects Shipped</div></div>
+    <div data-reveal><div class="num">10+</div><div class="lbl">Technologies</div></div>
+    <div data-reveal><div class="num">1</div><div class="lbl">Obsession: Great UX</div></div>
+  </div>
+</section>
+
+<!-- 6. Tech Specs -->
+<section class="bp bp-specs" id="specs">
+  <div data-reveal>
+    <p class="kicker" style="text-align:center">Tech Stack</p>
+    <table>
+      <tr><td>Languages</td><td>C++, Python, JavaScript, SQL, HTML5, CSS3</td></tr>
+      <tr><td>Frontend</td><td>React.js, Vite, Tailwind CSS, Three.js, R3F, GSAP, Framer Motion</td></tr>
+      <tr><td>Backend</td><td>Node.js, Express.js, Flask, REST APIs</td></tr>
+      <tr><td>Databases</td><td>MongoDB, Firebase, MySQL</td></tr>
+      <tr><td>AI & ML</td><td>LLMs, Groq API, Prompt Engineering, AI Workflows</td></tr>
+      <tr><td>Tools</td><td>Git/GitHub, VS Code, Postman, Figma</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 7. Projects -->
+<section class="bp" id="projects-section">
+  <div data-reveal><p class="kicker">Selected Works</p><h2>Projects that push the edge.</h2></div>
+
+  <!-- Nova City -->
+  <div class="project-card" data-reveal style="margin-top: 6vh;">
+    <div class="project-content">
+      <h3>Nova City ⭐</h3>
+      <div class="project-tech">
+        <span class="pill">React</span><span class="pill">Vite</span><span class="pill">Three.js</span>
+        <span class="pill">R3F</span><span class="pill">GSAP</span><span class="pill">Tailwind</span>
+      </div>
+      <ul class="project-highlights">
+        <li>Cinematic 3D web experience with GPU-accelerated space storytelling</li>
+        <li>Scroll-driven camera transitions via GSAP + React Three Fiber</li>
+        <li>Glassmorphism UI · lazy loading · modular React architecture</li>
+      </ul>
+      <a href="#" class="btn btn-primary">View Project</a>
+    </div>
+    <div class="project-visual nova-city">
+      <div class="nova-stars"></div>
+      <div class="pv-label">Nova City</div>
+    </div>
+  </div>
+
+  <!-- WasteGuideAI -->
+  <div class="project-card flip" data-reveal>
+    <div class="project-content">
+      <h3>WasteGuideAI ⭐</h3>
+      <div class="project-tech">
+        <span class="pill">React</span><span class="pill">Flask</span><span class="pill">Python</span>
+        <span class="pill">Groq API</span><span class="pill">Firebase</span><span class="pill">Tailwind</span>
+      </div>
+      <ul class="project-highlights">
+        <li>AI assistant classifying 15 waste categories with recycling guidance</li>
+        <li>Groq LLM integration · Flask APIs · Firebase auth/storage</li>
+        <li>Responsive dashboard · modular AI service architecture</li>
+      </ul>
+      <a href="#" class="btn btn-secondary">View Project</a>
+    </div>
+    <div class="project-visual">
+      <div class="pv-label">WasteGuideAI</div>
+    </div>
+  </div>
+
+  <!-- CodeGraph -->
+  <div class="project-card" data-reveal>
+    <div class="project-content">
+      <h3>CodeGraph ⭐</h3>
+      <div class="project-tech">
+        <span class="pill">Python</span><span class="pill">FastAPI</span><span class="pill">NetworkX</span>
+        <span class="pill">Graphviz</span><span class="pill">AST</span><span class="pill">JavaScript</span>
+      </div>
+      <ul class="project-highlights">
+        <li>Auto-generates dependency graphs from repo source code</li>
+        <li>Static analysis → module relationships → graph visualization</li>
+        <li>FastAPI backend · scalable extraction pipeline</li>
+      </ul>
+      <a href="#" class="btn btn-secondary">View Project</a>
+    </div>
+    <div class="project-visual">
+      <div class="pv-label">CodeGraph</div>
+    </div>
+  </div>
+
+  <!-- StudyMate AI -->
+  <div class="project-card flip" data-reveal>
+    <div class="project-content">
+      <h3>StudyMate AI ⭐</h3>
+      <div class="project-tech">
+        <span class="pill">React</span><span class="pill">Vite</span><span class="pill">Firebase</span>
+        <span class="pill">PDF.js</span><span class="pill">AI APIs</span><span class="pill">Tailwind</span>
+      </div>
+      <ul class="project-highlights">
+        <li>PDF Q&A, auto note generation, quiz creation</li>
+        <li>Document processing pipeline · AI summarization</li>
+        <li>Reusable component architecture · responsive dashboard</li>
+      </ul>
+      <a href="#" class="btn btn-secondary">View Project</a>
+    </div>
+    <div class="project-visual">
+      <div class="pv-label">StudyMate AI</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. CS Foundation -->
+<section class="bp">
+  <div data-reveal>
+    <p class="kicker">Foundation</p>
+    <h2>CS Core.</h2>
+  </div>
+  <div class="cs-grid" style="margin-top: 4vh;">
+    <div class="cs-badge" data-reveal>Data Structures & Algorithms</div>
+    <div class="cs-badge" data-reveal>Object-Oriented Programming</div>
+    <div class="cs-badge" data-reveal>Database Management Systems</div>
+    <div class="cs-badge" data-reveal>Operating Systems</div>
+    <div class="cs-badge" data-reveal>Computer Networks</div>
+    <div class="cs-badge" data-reveal>Software Architecture</div>
+  </div>
+</section>
+
+<!-- 9. Gallery -->
+<section class="bp" id="gallery">
+  <div data-reveal><p class="kicker">Gallery</p><h2>Visual Experiments.</h2></div>
+  <div class="bp-gallery" style="margin-top: 4vh;">
+    <img class="g1" data-reveal src="img/origin_hero.jpg" alt="Cosmic code visualization" />
+    <img class="g2" data-reveal src="img/ai_neural_craft.jpg" alt="Neural network art" />
+    <img class="g3" data-reveal src="img/fullstack_craft.jpg" alt="Architecture visualization" />
+    <img class="g4" data-reveal src="img/gallery_cosmic.jpg" alt="Cosmic panoramic code art" />
+  </div>
+</section>
+
+<!-- 10. Contact CTA -->
+<section class="bp bp-ctaband" id="contact">
+  <div data-reveal>
+    <h2>Let's build something<br>great.</h2>
+    <br>
+    <a class="cta-link" href="mailto:ayush@example.com">Get in Touch</a>
+    <div style="margin-top: 3vh; display: flex; gap: 1.5rem; justify-content: center;">
+      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">GitHub</a>
+      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">LinkedIn</a>
+      <a class="cta-link" href="#" style="font-size:13px; padding: 10px 20px;">Email</a>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Footer -->
+<footer class="bp-footer">
+  <div class="cols">
+    <div>
+      <span style="letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);font-size:13px;font-weight:600">Ayush</span>
+      <p class="lead" style="margin-top:14px;font-size:13px;color:var(--text-dim)">Full-Stack Developer · AI Engineer · 3D Web Creator</p>
+    </div>
+    <div>
+      <h4>Navigate</h4>
+      <a href="#story">Story</a><a href="#craft">Craft</a><a href="#specs">Stack</a>
+    </div>
+    <div>
+      <h4>Projects</h4>
+      <a href="#projects-section">Nova City</a><a href="#projects-section">WasteGuideAI</a><a href="#projects-section">CodeGraph</a>
+    </div>
+    <div>
+      <h4>Connect</h4>
+      <a href="#">GitHub</a><a href="#">LinkedIn</a><a href="#">Email</a>
+    </div>
+  </div>
+  <p class="fine">© 2025 Ayush. Crafted with code and curiosity.</p>
+</footer>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="main.js"></script>
+<script>
+  // reveal-on-scroll + nav after film
+  const io = new IntersectionObserver(
+    (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
+    { threshold: 0.15 }
+  );
+  document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+
+  // fallback for throttled IO
+  const revealNow = () => document.querySelectorAll("[data-reveal]:not(.in)").forEach((el) => {
+    const r = el.getBoundingClientRect();
+    if (r.top < innerHeight * 0.92 && r.bottom > 0) el.classList.add("in");
+  });
+  addEventListener("scroll", revealNow, { passive: true });
+  revealNow();
+
+  // sticky nav appears after the film track
+  const nav = document.getElementById("brandnav");
+  const filmEnd = () => (document.getElementById("track")?.offsetHeight ?? innerHeight * 3) - innerHeight;
+  addEventListener("scroll", () => nav.classList.toggle("on", scrollY > filmEnd() * 0.95), { passive: true });
+
+  // 3D Tilt on project cards
+  document.querySelectorAll(".project-card").forEach(card => {
+    const visual = card.querySelector(".project-visual");
+    if (!visual) return;
+    
+    card.addEventListener("mousemove", (e) => {
+      const rect = visual.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const tiltX = ((y - cy) / cy) * -8; // Max 8 deg
+      const tiltY = ((x - cx) / cx) * 8;
+      
+      visual.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+    card.addEventListener("mouseleave", () => {
+      visual.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+    });
+  });
+
+  // Custom Cursor
+  if (matchMedia("(pointer: fine)").matches) {
+    const cursor = document.getElementById("cursor");
+    const follower = document.getElementById("cursor-follower");
+    let mouseX = -100, mouseY = -100, currX = -100, currY = -100;
+    
+    addEventListener("mousemove", (e) => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+    });
+    
+    const renderCursor = () => {
+      currX += (mouseX - currX) * 0.15;
+      currY += (mouseY - currY) * 0.15;
+      follower.style.transform = `translate(${currX}px, ${currY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(renderCursor);
+    };
+    requestAnimationFrame(renderCursor);
+    
+    document.querySelectorAll("a, button, .project-card, .btn, .cs-badge").forEach(el => {
+      el.addEventListener("mouseenter", () => { cursor.classList.add("active"); follower.classList.add("active"); });
+      el.addEventListener("mouseleave", () => { cursor.classList.remove("active"); follower.classList.remove("active"); });
+    });
+  }
+</script>
+</body>
+</html>
